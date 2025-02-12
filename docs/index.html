@@ -1,49 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Data Visualization</title>
+  <title>Data Visualisatie</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.1/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script src="js.js"></script>
+  <style>
+    .chart {
+      width: 100%;
+      height: 400px;
+    }
+    /* Visually hidden class for skip links and similar elements */
+    .visually-hidden {
+      position: absolute !important;
+      height: 1px;
+      width: 1px;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap;
+    }
+    .visually-hidden.focusable:active,
+    .visually-hidden.focusable:focus {
+      position: static;
+      width: auto;
+      height: auto;
+      clip: auto;
+      white-space: normal;
+    }
+  </style>
 </head>
 <body>
-  <div class="container mt-4">
+  <!-- Skip link for keyboard users -->
+  <a href="#mainContent" class="visually-hidden focusable">Skip to main content</a>
+
+  <div class="container mt-4" id="mainContent">
+    <header>
+      <h1 class="visually-hidden">Data Visualisatie</h1>
+    </header>
+
     <div class="row g-3">
-      <!-- Startjaar / Eindjaar -->
-      <div class="col-md-3">
-        <div class="card p-3">
-          <label for="startYearRange" class="form-label">Startjaar</label>
-          <input type="range" class="form-range" id="startYearRange" min="2000" max="2025" step="1"/>
-          <span id="startYearValue"></span>
-          <label for="endYearRange" class="form-label mt-2">Eindjaar</label>
-          <input type="range" class="form-range" id="endYearRange" min="2000" max="2025" step="1"/>
-          <span id="endYearValue"></span>
+      <!-- Startjaar / Eindjaar card -->
+      <div class="col-md-3 d-flex">
+        <div class="card p-3 flex-fill">
+          <div class="mb-3">
+            <label for="startYearRange" class="form-label">Startjaar</label>
+            <input type="range" class="form-range" id="startYearRange" min="2000" max="2025" step="1" 
+                   aria-valuemin="2000" aria-valuemax="2025" aria-valuenow="2000" aria-label="Startjaar">
+            <span id="startYearValue" aria-live="polite"></span>
+          </div>
+          <div class="mb-3">
+            <label for="endYearRange" class="form-label">Eindjaar</label>
+            <input type="range" class="form-range" id="endYearRange" min="2000" max="2025" step="1" 
+                   aria-valuemin="2000" aria-valuemax="2025" aria-valuenow="2025" aria-label="Eindjaar">
+            <span id="endYearValue" aria-live="polite"></span>
+          </div>
         </div>
       </div>
-
-      <!-- Gebied -->
-      <div class="col-md-3">
-        <div class="card p-3">
+    
+      <!-- Gebied card -->
+      <div class="col-md-3 d-flex">
+        <div class="card p-3 flex-fill">
           <label for="areaSelect" class="form-label">Gebied</label>
-          <select id="areaSelect" class="form-select" multiple></select>
+          <select id="areaSelect" class="form-select" multiple aria-describedby="areaSelectDesc">
+            <!-- Options added dynamically -->
+          </select>
         </div>
       </div>
       
-      <!-- Sector -->
-      <div class="col-md-3">
-        <div class="card p-3">
+      <!-- Sector card -->
+      <div class="col-md-3 d-flex">
+        <div class="card p-3 flex-fill">
           <label for="sectorSelect" class="form-label">Sector</label>
-          <select id="sectorSelect" class="form-select"></select>
+          <select id="sectorSelect" class="form-select" aria-label="Sector">
+            <!-- Options added dynamically -->
+          </select>
         </div>
       </div>
-
-      <!-- Dienstverband -->
-      <div class="col-md-3">
-        <div class="card p-3">
+    
+      <!-- Dienstverband card -->
+      <div class="col-md-3 d-flex">
+        <div class="card p-3 flex-fill">
           <label for="dienstverbandSelect" class="form-label">Dienstverband</label>
-          <select id="dienstverbandSelect" class="form-select">
+          <select id="dienstverbandSelect" class="form-select" aria-label="Dienstverband">
             <option value="Werkzame_personen_totaal">Alle</option>
             <option value="Werkzame_personen_fulltime">Fulltime</option>
             <option value="Werkzame_personen_parttime">Parttime</option>
@@ -52,203 +93,39 @@
       </div>
     </div>
 
-    <h3 class="mt-4" id="plotTitle">Ontwikkeling aantal werkzame personen</h3>
-    <div id="chart" style="width: 100%; height: 400px;"></div>
+    <!-- Chart Section -->
+    <section aria-labelledby="plotTitle">
+      <h3 class="mt-4" id="plotTitle">Ontwikkeling aantal werkzame personen (indexcijfer)</h3>
+      <div id="chart" class="chart" role="img" 
+           aria-label="Grafiek van de ontwikkeling van het aantal werkzame personen, weergegeven als indexcijfer">
+      </div>
+    </section>
 
-    <h4 class="mt-4">Aantal werkzame personen</h4>
-    <table class="table table-striped" id="dataTable">
-      <thead>
-        <tr>
-          <th>Jaar</th>
-          <th>Gebied</th>
-          <th>Sector</th>
-          <th>Waarde</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <script>
-    let dataset = [];
-    let chartInstance;
-
-    // Fetch base64-encoded CSV data, decode, and return the CSV content as text
-    function fetchBase64Data() {
-      return fetch('encoded_data.txt')
-        .then(response => response.text())
-        .then(base64String => atob(base64String.trim()));
-    }
-
-    // Parse CSV data with PapaParse
-    function parseCSVData(csvData) {
-      return new Promise(resolve => {
-        Papa.parse(csvData, {
-          header: true,
-          skipEmptyLines: true,
-          complete: results => resolve(results.data),
-        });
-      });
-    }
-
-    // Initialize ECharts instance
-    function initializeChart() {
-      chartInstance = echarts.init(document.getElementById('chart'));
-      chartInstance.setOption({
-        tooltip: { trigger: 'axis' },
-        xAxis: { type: 'category' },
-        yAxis: { type: 'value' },
-        series: [],
-      });
-    }
-
-    // Update the chart based on the selected years, areas, sector, and yCol
-    function updateChart(startYear, endYear, areas, sector, yCol) {
-      // Filter data for Jaar between startYear and endYear
-      let filteredData = dataset.filter(row =>
-        row.Jaar >= startYear &&
-        row.Jaar <= endYear &&
-        areas.includes(row.Gebied) &&
-        row.Type.includes(sector)
-      );
-
-      // Group data by area (Gebied)
-      let groupedData = {};
-      filteredData.forEach(row => {
-        if (!groupedData[row.Gebied]) {
-          groupedData[row.Gebied] = [];
-        }
-        groupedData[row.Gebied].push([row.Jaar, parseFloat(row[yCol])]);
-      });
-
-      // Prepare series data
-      let seriesData = Object.keys(groupedData).map(area => {
-        // Sort by year ascending
-        let sortedSeries = groupedData[area].sort((a, b) => a[0] - b[0]);
-        return {
-          name: area,
-          type: 'line',
-          data: sortedSeries,
-        };
-      });
-
-      chartInstance.setOption({
-        xAxis: {
-          type: 'category',
-          // Build an X axis that includes all possible years in the selected range
-          data: Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i),
-        },
-        series: seriesData,
-      });
-    }
-
-    // Update table with the filtered data
-    function updateTable(startYear, endYear, areas, sector, yCol) {
-      let tableBody = document.querySelector('#dataTable tbody');
-      tableBody.innerHTML = '';
-
-      let filteredData = dataset.filter(row =>
-        row.Jaar >= startYear &&
-        row.Jaar <= endYear &&
-        areas.includes(row.Gebied) &&
-        row.Type.includes(sector)
-      );
-
-      filteredData.forEach(row => {
-        let tr = `
+    <!-- Table Section with Pagination -->
+    <section aria-labelledby="tableTitle">
+      <h4 class="mt-4" id="tableTitle">Aantal werkzame personen</h4>
+      <table class="table table-striped" id="dataTable">
+        <caption>Gegevens van werkzame personen per jaar, gebied en sector</caption>
+        <thead>
           <tr>
-            <td>${row.Jaar}</td>
-            <td>${row.Gebied}</td>
-            <td>${row.Type}</td>
-            <td>${row[yCol]}</td>
+            <th scope="col">Jaar</th>
+            <th scope="col">Gebied</th>
+            <th scope="col">Sector</th>
+            <th scope="col">Waarde</th>
+            <th scope="col">Indexcijfer</th>
           </tr>
-        `;
-        tableBody.innerHTML += tr;
-      });
-    }
+        </thead>
+        <tbody>
+          <!-- Dynamisch toegevoegde rijen -->
+        </tbody>
+      </table>
+      
+      <!-- Pagination controls with a navigation landmark -->
+      <nav id="pagination" class="d-flex justify-content-center mt-3" aria-label="Paginering">
+        <!-- Dynamisch toegevoegde pagineringselementen -->
+      </nav>
+    </section>
 
-    // Master function that reads all user inputs and refreshes both chart and table
-    function handleUserInput() {
-      let startYear = parseInt(document.getElementById('startYearRange').value, 10);
-      let endYear = parseInt(document.getElementById('endYearRange').value, 10);
-      let areas = Array.from(document.getElementById('areaSelect').selectedOptions).map(opt => opt.value);
-      let sector = document.getElementById('sectorSelect').value;
-      let yCol = document.getElementById('dienstverbandSelect').value;
-
-      // Ensure we don't invert the years if user drags incorrectly
-      if (startYear > endYear) {
-        [startYear, endYear] = [endYear, startYear];
-      }
-
-      // Display the chosen start/end years
-      document.getElementById('startYearValue').textContent = startYear;
-      document.getElementById('endYearValue').textContent = endYear;
-
-      updateChart(startYear, endYear, areas, sector, yCol);
-      updateTable(startYear, endYear, areas, sector, yCol);
-    }
-
-    // On DOMContentLoaded, fetch data, parse it, then set up the UI and chart
-    document.addEventListener('DOMContentLoaded', () => {
-      initializeChart();
-
-      fetchBase64Data()
-        .then(csvData => parseCSVData(csvData))
-        .then(data => {
-          dataset = data;
-
-          let areaSelect = document.getElementById('areaSelect');
-          let sectorSelect = document.getElementById('sectorSelect');
-          let startYearRange = document.getElementById('startYearRange');
-          let endYearRange = document.getElementById('endYearRange');
-
-          // Gather unique values
-          let uniqueYears = [...new Set(data.map(row => parseInt(row.Jaar, 10)))];
-          let uniqueAreas = [...new Set(data.map(row => row.Gebied))];
-          let uniqueSectors = [...new Set(data.map(row => row.Type))];
-
-          let minYear = Math.min(...uniqueYears);
-          let maxYear = Math.max(...uniqueYears);
-
-          // Initialize range inputs
-          startYearRange.min = minYear;
-          startYearRange.max = maxYear;
-          startYearRange.value = minYear;
-
-          endYearRange.min = minYear;
-          endYearRange.max = maxYear;
-          endYearRange.value = maxYear;
-
-          document.getElementById('startYearValue').textContent = minYear;
-          document.getElementById('endYearValue').textContent = maxYear;
-
-          // Populate area and sector dropdowns
-          uniqueAreas.forEach(area => {
-            let option = new Option(area, area);
-            areaSelect.appendChild(option);
-          });
-          // Select something by default if you like:
-          areaSelect.value = 'Almelo';
-
-          uniqueSectors.forEach(sec => {
-            let option = new Option(sec, sec);
-            sectorSelect.appendChild(option);
-          });
-          sectorSelect.value = 'Totaal';
-
-          // Attach event listeners
-          startYearRange.addEventListener('input', handleUserInput);
-          endYearRange.addEventListener('input', handleUserInput);
-          areaSelect.addEventListener('change', handleUserInput);
-          sectorSelect.addEventListener('change', handleUserInput);
-          document
-            .getElementById('dienstverbandSelect')
-            .addEventListener('change', handleUserInput);
-
-          // Initial load
-          handleUserInput();
-        });
-    });
-  </script>
+  </div>
 </body>
 </html>

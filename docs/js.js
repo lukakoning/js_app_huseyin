@@ -1,0 +1,239 @@
+let dataset = [];
+let chartInstance;
+const rowsPerPage = 10;
+let currentPage = 1;
+
+// Fetch base64-encoded CSV data, decode, and return the CSV content as text
+function fetchBase64Data() {
+  return fetch('data.txt')
+    .then(response => response.text())
+    .then(base64String => atob(base64String.trim()));
+}
+
+// Parse CSV data with PapaParse
+function parseCSVData(csvData) {
+  return new Promise(resolve => {
+    Papa.parse(csvData, {
+      header: true,
+      skipEmptyLines: true,
+      complete: results => resolve(results.data),
+    });
+  });
+}
+
+// Initialize ECharts instance
+function initializeChart() {
+  chartInstance = echarts.init(document.getElementById('chart'));
+  chartInstance.setOption({
+    tooltip: { trigger: 'axis' },
+    xAxis: { type: 'category' },
+    yAxis: { 
+      type: 'value',
+      scale: true
+    }
+  });
+  
+  // Ensure the chart resizes with window size
+  window.addEventListener('resize', () => {
+    chartInstance.resize();
+  });
+}
+
+// Update the chart based on user selections
+function updateChart(startYear, endYear, areas, sector, yCol) {
+  let filteredData = dataset.filter(row =>
+    row.Jaar >= startYear &&
+    row.Jaar <= endYear &&
+    areas.includes(row.Gebied) &&
+    row.Type.includes(sector)
+  );
+
+  let groupedData = {};
+  filteredData.forEach(row => {
+    if (!groupedData[row.Gebied]) {
+      groupedData[row.Gebied] = [];
+    }
+    groupedData[row.Gebied].push([row.Jaar, parseFloat(row[yCol])]);
+  });
+
+  let seriesData = Object.keys(groupedData).map(area => {
+    let sortedSeries = groupedData[area].sort((a, b) => a[0] - b[0]);
+    let baseline = sortedSeries[0][1];
+    let indexedSeries = sortedSeries.map(pair => {
+      let indexedValue = baseline ? (pair[1] / baseline) * 100 : 0;
+      return { year: pair[0], indexedValue, rawValue: pair[1] };
+    });
+
+    return {
+      name: area, // The legend will use this name
+      type: 'line',
+      data: indexedSeries.map(item => [item.year, item.indexedValue]),
+      tooltip: {
+        valueFormatter: value => value.toFixed(2) + "%",
+      },
+      emphasis: {
+        focus: 'series', // Highlight the selected series when hovered
+      },
+      label: { show: false }, // Hide labels on data points
+    };
+  });
+
+  chartInstance.setOption({
+    tooltip: { trigger: 'axis' },
+    legend: { show: true }, // Enable legend to identify areas
+    xAxis: { 
+      type: 'category', 
+      data: Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i),
+    },
+    yAxis: { 
+      type: 'value',
+      scale: true,
+    },
+    aria: {
+      enabled: true
+    },
+    series: seriesData,
+  }, true); // Don't merge with previous options
+}
+
+
+
+// Update combined table with pagination
+function updateTable(startYear, endYear, areas, sector, yCol) {
+  let tableBody = document.querySelector('#dataTable tbody');
+  let pagination = document.querySelector('#pagination');
+  tableBody.innerHTML = '';
+  pagination.innerHTML = '';
+
+  let filteredData = dataset.filter(row =>
+    row.Jaar >= startYear &&
+    row.Jaar <= endYear &&
+    areas.includes(row.Gebied) &&
+    row.Type.includes(sector)
+  );
+
+  let groupedData = {};
+  filteredData.forEach(row => {
+    if (!groupedData[row.Gebied]) {
+      groupedData[row.Gebied] = [];
+    }
+    groupedData[row.Gebied].push(row);
+  });
+
+  let allRows = [];
+  Object.keys(groupedData).forEach(area => {
+    let rows = groupedData[area].sort((a, b) => a.Jaar - b.Jaar);
+    let baseline = parseFloat(rows[0][yCol]);
+    rows.forEach(row => {
+      let value = parseFloat(row[yCol]);
+      let indexedValue = baseline ? (value / baseline) * 100 : 0;
+      allRows.push({ year: row.Jaar, area: row.Gebied, sector: row.Type, rawValue: value, indexedValue: indexedValue.toFixed(2) });
+    });
+  });
+
+  // Pagination logic
+  let totalPages = Math.ceil(allRows.length / rowsPerPage);
+  if (currentPage > totalPages) currentPage = totalPages;
+  let start = (currentPage - 1) * rowsPerPage;
+  let end = start + rowsPerPage;
+  let paginatedRows = allRows.slice(start, end);
+
+  paginatedRows.forEach(row => {
+    let tr = `
+      <tr>
+        <td>${row.year}</td>
+        <td>${row.area}</td>
+        <td>${row.sector}</td>
+        <td>${row.rawValue}</td>
+        <td>${row.indexedValue}%</td>
+      </tr>
+    `;
+    tableBody.innerHTML += tr;
+  });
+
+  // Pagination buttons
+  for (let i = 1; i <= totalPages; i++) {
+    let button = document.createElement('button');
+    button.innerText = i;
+    button.classList.add('btn', 'btn-sm', 'mx-1');
+    if (i === currentPage) button.classList.add('btn-primary');
+    else button.classList.add('btn-outline-primary');
+    
+    button.addEventListener('click', () => {
+      currentPage = i;
+      updateTable(startYear, endYear, areas, sector, yCol);
+    });
+
+    pagination.appendChild(button);
+  }
+}
+
+// Handle user inputs and refresh UI
+function handleUserInput() {
+  let startYear = parseInt(document.getElementById('startYearRange').value, 10);
+  let endYear = parseInt(document.getElementById('endYearRange').value, 10);
+  let areas = Array.from(document.getElementById('areaSelect').selectedOptions).map(opt => opt.value);
+  let sector = document.getElementById('sectorSelect').value;
+  let yCol = document.getElementById('dienstverbandSelect').value;
+
+  if (startYear > endYear) [startYear, endYear] = [endYear, startYear];
+
+  document.getElementById('startYearValue').textContent = startYear;
+  document.getElementById('endYearValue').textContent = endYear;
+
+  updateChart(startYear, endYear, areas, sector, yCol);
+  updateTable(startYear, endYear, areas, sector, yCol);
+}
+
+// Initialize and fetch data
+document.addEventListener('DOMContentLoaded', () => {
+  initializeChart();
+
+  fetchBase64Data()
+    .then(csvData => parseCSVData(csvData))
+    .then(data => {
+      dataset = data;
+
+      let areaSelect = document.getElementById('areaSelect');
+      let sectorSelect = document.getElementById('sectorSelect');
+      let startYearRange = document.getElementById('startYearRange');
+      let endYearRange = document.getElementById('endYearRange');
+
+      let uniqueYears = [...new Set(data.map(row => parseInt(row.Jaar, 10)))];
+      let uniqueAreas = [...new Set(data.map(row => row.Gebied))];
+      let uniqueSectors = [...new Set(data.map(row => row.Type))];
+
+      let minYear = Math.min(...uniqueYears);
+      let maxYear = Math.max(...uniqueYears);
+
+      startYearRange.min = minYear;
+      startYearRange.max = maxYear;
+      startYearRange.value = minYear;
+      endYearRange.min = minYear;
+      endYearRange.max = maxYear;
+      endYearRange.value = maxYear;
+
+      document.getElementById('startYearValue').textContent = minYear;
+      document.getElementById('endYearValue').textContent = maxYear;
+
+      uniqueAreas.forEach(area => {
+        let option = new Option(area, area);
+        areaSelect.appendChild(option);
+      });
+      areaSelect.value = 'Almelo';
+
+      uniqueSectors.forEach(sec => {
+        let option = new Option(sec, sec);
+        sectorSelect.appendChild(option);
+      });
+      sectorSelect.value = 'Totaal';
+
+      startYearRange.addEventListener('input', handleUserInput);
+      endYearRange.addEventListener('input', handleUserInput);
+      areaSelect.addEventListener('change', handleUserInput);
+      sectorSelect.addEventListener('change', handleUserInput);
+      document.getElementById('dienstverbandSelect').addEventListener('change', handleUserInput);
+
+      handleUserInput();
+    });
+});
