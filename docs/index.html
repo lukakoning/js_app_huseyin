@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Data Visualisatie</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -43,57 +44,71 @@
       <hr/>
     </header>
 
-    <div class="row g-3">
-      <!-- Startjaar / Eindjaar card -->
-      <div class="col-md-3 d-flex">
-        <div class="card p-3 flex-fill">
-          <div class="mb-3">
-            <label for="startYearRange" class="form-label">Startjaar</label>
-            <input type="range" class="form-range" id="startYearRange" min="2000" max="2025" step="1" 
-                   aria-valuemin="2000" aria-valuemax="2025" aria-valuenow="2000" aria-label="Startjaar">
-            <span id="startYearValue" aria-live="polite"></span>
+    <!-- Input cards section -->
+    <section aria-labelledby="inputCardsTitle">
+      <h2 id="inputCardsTitle" class="visually-hidden">Selectie criteria</h2>
+      <div class="card mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#inputCardsCollapse" aria-expanded="true" aria-controls="inputCardsCollapse" style="cursor: pointer;">
+          <h4>Selectie</h4>
+          <span class="expand-icon">&#x25BE;</span> <!-- Down arrow -->
+        </div>
+        <div class="collapse show" id="inputCardsCollapse">
+          <div class="card-body">
+            <div class="row g-3">
+              <!-- Startjaar / Eindjaar card -->
+              <div class="col-md-3 d-flex">
+                <div class="card p-3 flex-fill">
+                  <div class="mb-3">
+                    <label for="startYearRange" class="form-label">Startjaar</label>
+                    <input type="range" class="form-range" id="startYearRange" min="2000" max="2025" step="1" 
+                           aria-valuemin="2000" aria-valuemax="2025" aria-valuenow="2000" aria-label="Startjaar">
+                    <span id="startYearValue" aria-live="polite"></span>
+                  </div>
+                  <div class="mb-3">
+                    <label for="endYearRange" class="form-label">Eindjaar</label>
+                    <input type="range" class="form-range" id="endYearRange" min="2000" max="2025" step="1" 
+                           aria-valuemin="2000" aria-valuemax="2025" aria-valuenow="2025" aria-label="Eindjaar">
+                    <span id="endYearValue" aria-live="polite"></span>
+                  </div>
+                </div>
+              </div>
+            
+              <!-- Gebied card -->
+              <div class="col-md-3 d-flex">
+                <div class="card p-3 flex-fill">
+                  <label for="areaSelect" class="form-label">Gebied</label>
+                  <select id="areaSelect" class="form-select" multiple aria-describedby="areaSelectDesc">
+                    <!-- Options added dynamically -->
+                  </select>
+                </div>
+              </div>
+              
+              <!-- Sector card -->
+              <div class="col-md-3 d-flex">
+                <div class="card p-3 flex-fill">
+                  <label for="sectorSelect" class="form-label">Sector</label>
+                  <select id="sectorSelect" class="form-select" aria-label="Sector">
+                    <!-- Options added dynamically -->
+                  </select>
+                </div>
+              </div>
+            
+              <!-- Dienstverband card -->
+              <div class="col-md-3 d-flex">
+                <div class="card p-3 flex-fill">
+                  <label for="dienstverbandSelect" class="form-label">Dienstverband</label>
+                  <select id="dienstverbandSelect" class="form-select" aria-label="Dienstverband">
+                    <option value="Werkzame_personen_totaal">Alle</option>
+                    <option value="Werkzame_personen_fulltime">Fulltime</option>
+                    <option value="Werkzame_personen_parttime">Parttime</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="mb-3">
-            <label for="endYearRange" class="form-label">Eindjaar</label>
-            <input type="range" class="form-range" id="endYearRange" min="2000" max="2025" step="1" 
-                   aria-valuemin="2000" aria-valuemax="2025" aria-valuenow="2025" aria-label="Eindjaar">
-            <span id="endYearValue" aria-live="polite"></span>
-          </div>
         </div>
       </div>
-    
-      <!-- Gebied card -->
-      <div class="col-md-3 d-flex">
-        <div class="card p-3 flex-fill">
-          <label for="areaSelect" class="form-label">Gebied</label>
-          <select id="areaSelect" class="form-select" multiple aria-describedby="areaSelectDesc">
-            <!-- Options added dynamically -->
-          </select>
-        </div>
-      </div>
-      
-      <!-- Sector card -->
-      <div class="col-md-3 d-flex">
-        <div class="card p-3 flex-fill">
-          <label for="sectorSelect" class="form-label">Sector</label>
-          <select id="sectorSelect" class="form-select" aria-label="Sector">
-            <!-- Options added dynamically -->
-          </select>
-        </div>
-      </div>
-    
-      <!-- Dienstverband card -->
-      <div class="col-md-3 d-flex">
-        <div class="card p-3 flex-fill">
-          <label for="dienstverbandSelect" class="form-label">Dienstverband</label>
-          <select id="dienstverbandSelect" class="form-select" aria-label="Dienstverband">
-            <option value="Werkzame_personen_totaal">Alle</option>
-            <option value="Werkzame_personen_fulltime">Fulltime</option>
-            <option value="Werkzame_personen_parttime">Parttime</option>
-          </select>
-        </div>
-      </div>
-    </div>
+    </section>
     
     <!-- Chart Section -->
     <section aria-labelledby="plotTitle">
