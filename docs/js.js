@@ -4,10 +4,10 @@ const rowsPerPage = 10;
 let currentPage = 1;
 
 // Fetch base64-encoded CSV data, decode, and return the CSV content as text
-function fetchBase64Data() {
-  return fetch('data.txt')
-    .then(response => response.text())
-    .then(base64String => atob(base64String.trim()));
+async function fetchBase64Data() {
+  const response = await fetch('data.txt');
+  const base64String = await response.text();
+  return atob(base64String.trim());
 }
 
 // Parse CSV data with PapaParse
@@ -27,12 +27,12 @@ function initializeChart() {
   chartInstance.setOption({
     tooltip: { trigger: 'axis' },
     xAxis: { type: 'category' },
-    yAxis: { 
+    yAxis: {
       type: 'value',
       scale: true
     }
   });
-  
+
   // Ensure the chart resizes with window size
   window.addEventListener('resize', () => {
     chartInstance.resize();
@@ -81,11 +81,11 @@ function updateChart(startYear, endYear, areas, sector, yCol) {
   chartInstance.setOption({
     tooltip: { trigger: 'axis' },
     legend: { show: true }, // Enable legend to identify areas
-    xAxis: { 
-      type: 'category', 
+    xAxis: {
+      type: 'category',
       data: Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i),
     },
-    yAxis: { 
+    yAxis: {
       type: 'value',
       scale: true,
     },
@@ -98,7 +98,6 @@ function updateChart(startYear, endYear, areas, sector, yCol) {
 
 
 
-// Update combined table with pagination
 function updateTable(startYear, endYear, areas, sector, yCol) {
   let tableBody = document.querySelector('#dataTable tbody');
   let pagination = document.querySelector('#pagination');
@@ -158,7 +157,7 @@ function updateTable(startYear, endYear, areas, sector, yCol) {
     button.classList.add('btn', 'btn-sm', 'mx-1');
     if (i === currentPage) button.classList.add('btn-primary');
     else button.classList.add('btn-outline-primary');
-    
+
     button.addEventListener('click', () => {
       currentPage = i;
       updateTable(startYear, endYear, areas, sector, yCol);
@@ -183,6 +182,7 @@ function handleUserInput() {
 
   updateChart(startYear, endYear, areas, sector, yCol);
   updateTable(startYear, endYear, areas, sector, yCol);
+
 }
 
 // Initialize and fetch data
