@@ -38,7 +38,8 @@
 
   <div class="container mt-4" id="mainContent">
     <header>
-      <h1 class="visually-hidden">Data Visualisatie</h1>
+      <h1>Ontwikkeling aantal werkzame personen</h1>
+      <hr/>
     </header>
 
     <div class="row g-3">
@@ -95,35 +96,49 @@
 
     <!-- Chart Section -->
     <section aria-labelledby="plotTitle">
-      <h3 class="mt-4" id="plotTitle">Ontwikkeling aantal werkzame personen (indexcijfer)</h3>
-      <div id="chart" class="chart" role="img" 
-           aria-label="Grafiek van de ontwikkeling van het aantal werkzame personen, weergegeven als indexcijfer">
+      <div class="card mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 id="plotTitle" class="mb-0">Grafiek</h4>
+          <button id="optionsToggle" class="btn btn-outline-secondary btn-sm" data-bs-toggle="popover" title="Opties" data-bs-content="Toon indexcijfer: <input type='checkbox' id='showIndexToggle' checked>">
+            <i class="bi bi-gear"></i>
+          </button>
+        </div>
+        <div class="card-body">
+          <div id="chart" class="chart" role="img" aria-label="Grafiek van de ontwikkeling van het aantal werkzame personen, weergegeven als indexcijfer"></div>
+        </div>
       </div>
     </section>
 
     <!-- Table Section with Pagination -->
     <section aria-labelledby="tableTitle">
-      <h4 class="mt-4" id="tableTitle">Aantal werkzame personen</h4>
-      <table class="table table-striped" id="dataTable">
-        <caption>Gegevens van werkzame personen per jaar, gebied en sector</caption>
-        <thead>
-          <tr>
-            <th scope="col">Jaar</th>
-            <th scope="col">Gebied</th>
-            <th scope="col">Sector</th>
-            <th scope="col">Waarde</th>
-            <th scope="col">Indexcijfer</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Dynamisch toegevoegde rijen -->
-        </tbody>
-      </table>
+      <div class="card mt-4">
+        <div class="card-header">
+          <h4 id="tableTitle" class="mb-0">Tabel</h4>
+        </div>
+        <div class="card-body">
+          <table class="table table-striped" id="dataTable">            
+            <thead>
+              <tr>
+                <th scope="col">Jaar</th>
+                <th scope="col">Gebied</th>
+                <th scope="col">Sector</th>
+                <th scope="col">Aantal</th>
+                <th scope="col">Index</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dynamisch toegevoegde rijen -->
+            </tbody>
+          </table>
+
+          <!-- Pagination controls with a navigation landmark -->
+          <nav id="pagination" class="d-flex justify-content-center mt-3" aria-label="Paginering">
+            <!-- Dynamisch toegevoegde pagineringselementen -->
+          </nav>
+        </div>
+      </div>
       
-      <!-- Pagination controls with a navigation landmark -->
-      <nav id="pagination" class="d-flex justify-content-center mt-3" aria-label="Paginering">
-        <!-- Dynamisch toegevoegde pagineringselementen -->
-      </nav>
+
     </section>
 
   </div>
