@@ -98,24 +98,47 @@ function updateChart(startYear, endYear, areas, sector, yCol, showIndex) {
     series: seriesData,
   }, true); // Don't merge with previous options
   
-  // After the chart is rendered, add tabindex to the SVG toggle elements.
-  // Here, we're selecting <path> elements with fill-opacity="0"
-  setTimeout(() => {
-    const toggleElements = document.querySelectorAll('#chart path[fill-opacity="0"]');
-    toggleElements.forEach(el => {
-      el.setAttribute('tabindex', '0');
-      el.setAttribute('role', 'button');
-      el.addEventListener('keydown', event => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          el.dispatchEvent(new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-          }));
-        }
-      });
+  // Wait until ECharts finishes rendering
+  chartInstance.on('finished', () => {
+    const legendTextElements = document.querySelectorAll('#chart text[dominant-baseline]');
+    legendTextElements.forEach(textEl => {
+      if (textEl.getAttribute('text-anchor') === 'start') {
+        textEl.style.pointerEvents = 'all';
+        textEl.setAttribute('tabindex', '0');
+        textEl.setAttribute('role', 'button');
+        textEl.setAttribute('aria-pressed', 'false');
+  
+        textEl.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            const legendName = textEl.dataset?.legendName || textEl.textContent;
+  
+            // Toggle the legend item
+            chartInstance.dispatchAction({
+              type: 'legendToggleSelect',
+              name: legendName
+            });
+  
+            // Update aria-pressed state
+            const isSelected = textEl.getAttribute('aria-pressed') === 'true';
+            textEl.setAttribute('aria-pressed', (!isSelected).toString());
+  
+            // Wait for chart to update, then find and focus the corresponding legend element
+            setTimeout(() => {
+              const updatedLegendElements = document.querySelectorAll('#chart text[dominant-baseline]');
+              const matchingElement = Array.from(updatedLegendElements)
+                .find(el => (el.dataset?.legendName || el.textContent) === legendName);
+  
+              if (matchingElement) {
+                matchingElement.focus();
+                matchingElement.blur(); // Add this line to remove focus after focusing
+              }
+            }, 100); // Small delay to ensure chart has updated
+          }
+        });
+      }
     });
-  }, 0);
+  });
 }
 
 function updateTable(startYear, endYear, areas, sector, yCol) {
