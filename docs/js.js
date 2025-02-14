@@ -40,7 +40,7 @@ function initializeChart() {
 }
 
 // Update the chart based on user selections
-function updateChart(startYear, endYear, areas, sector, yCol) {
+function updateChart(startYear, endYear, areas, sector, yCol, showIndex) {
   let filteredData = dataset.filter(row =>
     row.Jaar >= startYear &&
     row.Jaar <= endYear &&
@@ -59,17 +59,17 @@ function updateChart(startYear, endYear, areas, sector, yCol) {
   let seriesData = Object.keys(groupedData).map(area => {
     let sortedSeries = groupedData[area].sort((a, b) => a[0] - b[0]);
     let baseline = sortedSeries[0][1];
-    let indexedSeries = sortedSeries.map(pair => {
-      let indexedValue = baseline ? (pair[1] / baseline) * 100 : 0;
-      return { year: pair[0], indexedValue, rawValue: pair[1] };
+    let series = sortedSeries.map(pair => {
+      let value = showIndex ? (baseline ? (pair[1] / baseline) * 100 : 0) : pair[1];
+      return { year: pair[0], value, rawValue: pair[1] };
     });
 
     return {
       name: area, // The legend will use this name
       type: 'line',
-      data: indexedSeries.map(item => [item.year, item.indexedValue]),
+      data: series.map(item => [item.year, item.value]),
       tooltip: {
-        valueFormatter: value => value.toFixed(2) + "%",
+        valueFormatter: value => showIndex ? value.toFixed(2) + "%" : value.toFixed(2),
       },
       emphasis: {
         focus: 'series', // Highlight the selected series when hovered
@@ -95,8 +95,6 @@ function updateChart(startYear, endYear, areas, sector, yCol) {
     series: seriesData,
   }, true); // Don't merge with previous options
 }
-
-
 
 function updateTable(startYear, endYear, areas, sector, yCol) {
   let tableBody = document.querySelector('#dataTable tbody');
@@ -174,20 +172,24 @@ function handleUserInput() {
   let areas = Array.from(document.getElementById('areaSelect').selectedOptions).map(opt => opt.value);
   let sector = document.getElementById('sectorSelect').value;
   let yCol = document.getElementById('dienstverbandSelect').value;
+  let showIndex = document.getElementById('showIndexToggle').checked;
 
   if (startYear > endYear) [startYear, endYear] = [endYear, startYear];
 
   document.getElementById('startYearValue').textContent = startYear;
   document.getElementById('endYearValue').textContent = endYear;
 
-  updateChart(startYear, endYear, areas, sector, yCol);
+  updateChart(startYear, endYear, areas, sector, yCol, showIndex);
   updateTable(startYear, endYear, areas, sector, yCol);
-
 }
 
 // Initialize and fetch data
 document.addEventListener('DOMContentLoaded', () => {
   initializeChart();
+
+  // Add direct event listener for the toggle
+  document.getElementById('showIndexToggle').addEventListener('change', handleUserInput);
+  document.getElementById('showNumberToggle').addEventListener('change', handleUserInput);
 
   fetchBase64Data()
     .then(csvData => parseCSVData(csvData))
@@ -233,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
       areaSelect.addEventListener('change', handleUserInput);
       sectorSelect.addEventListener('change', handleUserInput);
       document.getElementById('dienstverbandSelect').addEventListener('change', handleUserInput);
-
+      
       handleUserInput();
     });
 });

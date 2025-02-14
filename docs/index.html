@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js.js"></script>
   <style>
     .chart {
@@ -93,15 +94,19 @@
         </div>
       </div>
     </div>
-
+    
     <!-- Chart Section -->
     <section aria-labelledby="plotTitle">
       <div class="card mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 id="plotTitle" class="mb-0">Grafiek</h4>
-          <button id="optionsToggle" class="btn btn-outline-secondary btn-sm" data-bs-toggle="popover" title="Opties" data-bs-content="Toon indexcijfer: <input type='checkbox' id='showIndexToggle' checked>">
-            <i class="bi bi-gear"></i>
-          </button>
+          <div class="btn-group" role="group" aria-label="Weergave schakelaar">
+            <input type="radio" class="btn-check" name="displayType" id="showNumberToggle" autocomplete="off">
+            <label class="btn btn-outline-primary" for="showNumberToggle">Aantal</label>
+            
+            <input type="radio" class="btn-check" name="displayType" id="showIndexToggle" autocomplete="off" checked>
+            <label class="btn btn-outline-primary" for="showIndexToggle">Index</label>
+          </div>
         </div>
         <div class="card-body">
           <div id="chart" class="chart" role="img" aria-label="Grafiek van de ontwikkeling van het aantal werkzame personen, weergegeven als indexcijfer"></div>
