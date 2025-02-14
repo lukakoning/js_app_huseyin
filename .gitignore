@@ -3,3 +3,4 @@
 .RData
 .Ruserdata
 /renv
+node_modules
