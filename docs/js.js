@@ -23,7 +23,10 @@ function parseCSVData(csvData) {
 
 // Initialize ECharts instance
 function initializeChart() {
-  chartInstance = echarts.init(document.getElementById('chart'));
+  chartInstance = echarts.init(document.getElementById('chart'), null, {
+    renderer: 'svg'  // Specify SVG renderer instead of default canvas
+  });
+  
   chartInstance.setOption({
     tooltip: { trigger: 'axis' },
     xAxis: { type: 'category' },
@@ -94,6 +97,25 @@ function updateChart(startYear, endYear, areas, sector, yCol, showIndex) {
     },
     series: seriesData,
   }, true); // Don't merge with previous options
+  
+  // After the chart is rendered, add tabindex to the SVG toggle elements.
+  // Here, we're selecting <path> elements with fill-opacity="0"
+  setTimeout(() => {
+    const toggleElements = document.querySelectorAll('#chart path[fill-opacity="0"]');
+    toggleElements.forEach(el => {
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('role', 'button');
+      el.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          el.dispatchEvent(new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+          }));
+        }
+      });
+    });
+  }, 0);
 }
 
 function updateTable(startYear, endYear, areas, sector, yCol) {
