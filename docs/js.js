@@ -3,11 +3,20 @@ let chartInstance;
 const rowsPerPage = 10;
 let currentPage = 1;
 
-// Fetch base64-encoded CSV data, decode, and return the CSV content as text
+// Fetch gzipped CSV data, decompress, decode, and return the CSV content as text
 async function fetchBase64Data() {
-  const response = await fetch('data.txt');
-  const base64String = await response.text();
-  return atob(base64String.trim());
+  const response = await fetch('data.csv.gz');
+  const compressedData = await response.arrayBuffer();
+  const decompressedData = await ungzip(new Uint8Array(compressedData));
+  const csvData = new TextDecoder().decode(decompressedData);
+  return csvData;
+}
+
+// gunzip decompression function
+async function ungzip(array) {
+  const gunzip = new Zlib.Gunzip(array);
+  const decompressed = gunzip.decompress();
+  return decompressed;
 }
 
 // Parse CSV data with PapaParse
